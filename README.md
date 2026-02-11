@@ -10,3 +10,4 @@
 
 Работа с Git:
 - Ctrl + K - открыть окно Commit.
+- Ctrl + Shift + K - открыть окно Push.
