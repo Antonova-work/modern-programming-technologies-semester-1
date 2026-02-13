@@ -1,4 +1,4 @@
-package lesson1;
+package lesson1_datatypes;
 
 public class FoodDelivery {
     public static void main (String[] args){
