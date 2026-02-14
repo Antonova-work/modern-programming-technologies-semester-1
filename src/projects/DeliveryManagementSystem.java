@@ -6,8 +6,8 @@ import java.util.ArrayList;
 
 public class DeliveryManagementSystem {
     public static void main(String[] args) {
-        Order newOrder1 = new Order("Молоко", 250.123);
-        Order newOrder2 = new Order("Сметана", 150.25);
+        Order newOrder1 = new Order("Молоко", 100.24);
+        Order newOrder2 = new Order("Сметана", 0.99);
         Courier newCourier = new Courier("Саша");
         newCourier.takeOrder(newOrder1);
         newCourier.takeOrder(newOrder2);
@@ -64,7 +64,7 @@ class Courier implements Deliverable {
             total += item.getItemPrice();
             System.out.println(item.getItemName() + " - " + item.getItemPrice());
         }
-
+        total = Math.round(total * 100.0) / 100.0;
         System.out.println("Общая сумма заказа: " + total + " рублей.");
         total = 0;
         backpack.clear();
