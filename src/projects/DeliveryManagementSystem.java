@@ -6,8 +6,8 @@ import java.util.ArrayList;
 
 public class DeliveryManagementSystem {
     public static void main(String[] args) {
-        Order newOrder1 = new Order("Молоко", 100.24);
-        Order newOrder2 = new Order("Сметана", 0.99);
+        Order newOrder1 = new Order("Молоко", 100.24, 2);
+        Order newOrder2 = new Order("Сметана", 0.99, -4);
         Courier newCourier = new Courier("Саша");
         newCourier.takeOrder(newOrder1);
         newCourier.takeOrder(newOrder2);
@@ -22,8 +22,9 @@ interface Deliverable {
 class Order {
     private String itemName;
     private double itemPrice;
+    private int itemQuantity;
 
-    public Order (String newItemName, double newItemPrice) {
+    public Order (String newItemName, double newItemPrice, int newItemQuantity) {
         this.itemName = newItemName;
 
         BigDecimal bd = BigDecimal.valueOf(newItemPrice);
@@ -33,6 +34,11 @@ class Order {
         } else {
             this.itemPrice = newItemPrice;
         }
+        if (newItemQuantity < 0) {
+            this.itemQuantity = 0;
+        } else {
+            this.itemQuantity = newItemQuantity;
+        }
     }
 
     public String getItemName() {
@@ -41,6 +47,10 @@ class Order {
 
     public double getItemPrice() {
         return itemPrice;
+    }
+
+    public int getItemQuantity() {
+        return itemQuantity;
     }
 }
 
@@ -55,14 +65,22 @@ class Courier implements Deliverable {
     }
 
     public void takeOrder (Order order) {
-        backpack.add(order);
+        if (order.getItemQuantity() > 0) {
+            backpack.add(order);
+        } else {
+            System.out.println("Заказ '" + order.getItemName() + "' пуст. Добавьте хотябы один товар.");
+        }
     }
     public void deliver (){
         System.out.println("Курьер " + name + " доставил следующие заказы:");
 
         for (Order item : backpack) {
-            total += item.getItemPrice();
-            System.out.println(item.getItemName() + " - " + item.getItemPrice());
+            if (item.getItemQuantity() == 0) {
+                continue;
+            }
+            total += (item.getItemPrice() * item.getItemQuantity());
+            System.out.println(item.getItemName() + " - " + item.getItemPrice() + ", количество: "
+                    + item.getItemQuantity() + ".");
         }
         total = Math.round(total * 100.0) / 100.0;
         System.out.println("Общая сумма заказа: " + total + " рублей.");
