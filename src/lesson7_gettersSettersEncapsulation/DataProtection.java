@@ -24,11 +24,11 @@ class Restaurant {
 
     public void setRating(double newRating) {
         if (newRating < 0.0) {
-            this.rating = 0.0;
+            rating = 0.0;
         } else if (newRating > 5.0) {
-            this.rating = 5.0;
+            rating = 5.0;
         } else {
-            this.rating = newRating;
+            rating = newRating;
         }
     }
 
