@@ -3,55 +3,90 @@ package projects;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class DeliveryManagementSystem {
     public static void main(String[] args) {
-        Order newOrder1 = new Order("Молоко", 100.24, 2);
-        Order newOrder2 = new Order("Сметана", 0.99, -4);
-        Courier newCourier = new Courier("Саша");
-        newCourier.takeOrder(newOrder1);
-        newCourier.takeOrder(newOrder2);
+        //создаём курьера
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Введите имя курьера:");
+        String courierName = scanner.nextLine();
+        Courier newCourier = new Courier(courierName);
+
+        //созадаём заказ (несколько товаров в цикле)
+        String answer;
+        do {
+            System.out.println("Введите название товара:");
+            String orderName = scanner.nextLine();
+
+            System.out.println("Введите цену за 1 единицу товара:");
+            BigDecimal orderPrice = new BigDecimal(scanner.nextLine()); // BigDecimal для цены
+
+            System.out.println("Введите колличество единиц товара:");
+            int orderQuantity = Integer.parseInt(scanner.nextLine());
+
+            //собираем позицию заказа
+            Order newOrder1 = new Order(orderName, orderPrice, orderQuantity);
+
+            //отдаём курьеру позицию
+            newCourier.takeOrder(newOrder1);
+
+            System.out.println("Добавить ещё один товар? (да/нет)");
+            answer = scanner.nextLine();} while (!(answer.equals("нет")));
+
+        //выводим информацию кто доставил и что
         newCourier.deliver();
     }
 }
 
+//интерфейс для доставщика (считать сумму заказа, выводить что доставил и сколько стоил заказ + проверка пустой ли рюкзак)
 interface Deliverable {
     void deliver ();
 }
 
 class Order {
     private String itemName;
-    private double itemPrice;
+    private BigDecimal itemPrice;
     private int itemQuantity;
 
-    public Order (String newItemName, double newItemPrice, int newItemQuantity) {
+    //конструктор для создания заказа
+    public Order (String newItemName, BigDecimal newItemPrice, int newItemQuantity) {
         this.itemName = newItemName;
 
-        if (newItemPrice < 0) {
-            this.itemPrice = 0;
+        if (newItemQuantity <= 0) {
+            this.itemQuantity = 0;
+            System.out.println("Невозможное количество. Запишите товар заново");
+        } else {
+            this.itemQuantity = newItemQuantity;
+        }
+
+        //если цена меньше нуля, мы обнуляем и цену, и количество
+        if (newItemPrice.compareTo(BigDecimal.ZERO) <= 0){
+            System.out.println("Невозможная цена. Запишите товар заново.");
+            this.itemPrice = BigDecimal.ZERO;
             this.itemQuantity = 0;
             return;
         }
 
-        BigDecimal bd = BigDecimal.valueOf(newItemPrice);
-        if (bd.scale() > 2) {
-            this.itemPrice = bd.setScale(0, RoundingMode.DOWN).doubleValue();
-            System.out.println("Cлишком много копеек. Цена товара '" + itemName + "' = " + this.itemPrice);
-        } else {
-            this.itemPrice = newItemPrice;
-        }
-        if (newItemQuantity < 0) {
-            this.itemQuantity = 0;
-        } else {
-            this.itemQuantity = newItemQuantity;
-        }
+        //берём только целую часть
+        BigDecimal rubles = newItemPrice.setScale(0, RoundingMode.DOWN);
+
+        //берём остаток от деления на 1 и двигаем запятую вправо на количество знаков после запятой
+        BigDecimal kopecks = newItemPrice.remainder(BigDecimal.ONE).movePointRight(newItemPrice.scale());
+
+        //получаем из копеек рубли и оставшиеся копейки
+        BigDecimal kopecksAsRubles = kopecks.divide(new BigDecimal("100"));
+
+        //складываем изначальные рубли и новые
+        this.itemPrice = rubles.add(kopecksAsRubles);
     }
 
+    //геттеры названия, цени и количества
     public String getItemName() {
         return itemName;
     }
 
-    public double getItemPrice() {
+    public BigDecimal getItemPrice() {
         return itemPrice;
     }
 
@@ -60,43 +95,53 @@ class Order {
     }
 }
 
+//класс реализующий интерфейс Deliverable
 class Courier implements Deliverable {
     private String name;
+    //здесь могут лежать только объекты типа Order
     private ArrayList<Order> backpack;
-    double total;
 
+    //конструктор создаём курьера имя + пустой рюкзак
     public Courier (String newName) {
         this.name = newName;
         this.backpack = new ArrayList<>();
     }
 
+    //метод для "упаковки" всего заказа.
+    //берём только заказы только из Order
     public void takeOrder (Order order) {
+        //если количество 1 товара больше 0, то добавляем в рюкзак
+        //если было добавлен товаров одного вида меньше 0 или 0, то сообщаем об этом
         if (order.getItemQuantity() > 0) {
             backpack.add(order);
-        } else {
-            System.out.println("Заказ '" + order.getItemName() + "' пуст. Добавьте хотябы один товар.");
         }
     }
+
+    //метод из интерфейса
     public void deliver (){
 
+        //если пустой рюкзак сообщаем и выходим из метода
         if (backpack.isEmpty()) {
             System.out.println("Курьер не брал заказа!");
-        } else {
-            System.out.println("Курьер " + name + " доставил следующие заказы:");
+            return;
         }
 
+        //так как объект ставим 0 вот так
+        BigDecimal total = BigDecimal.ZERO;
+
+        System.out.println("Курьер " + name + " доставил следующие заказы:");
+
+
         for (Order item : backpack) {
-            if (item.getItemQuantity() == 0) {
-                continue;
-            }
-            total += (item.getItemPrice() * item.getItemQuantity());
-            System.out.println(item.getItemName() + " - " + item.getItemPrice() + ", количество: "
+
+            //умножаем через multiply на новый объект (по факту int, но BigDecimal
+            BigDecimal itemTotal = (item.getItemPrice().multiply(new BigDecimal(item.getItemQuantity())));
+            //так прибавляем потому что BigDecimal
+            total = total.add(itemTotal);
+            System.out.println(item.getItemName() + " - " + item.getItemPrice() + " руб." + ", количество: "
                     + item.getItemQuantity() + ".");
         }
-        total = Math.round(total * 100.0) / 100.0;
-        System.out.println("Общая сумма заказа: " + total + " рублей.");
-        total = 0;
+        System.out.println("Общая сумма заказа: " + total.setScale(2, RoundingMode.HALF_UP) + " рублей.");
         backpack.clear();
     }
 }
-
