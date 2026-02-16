@@ -15,16 +15,20 @@ public class GeneralMeetingPlan {
         for (Employee employee : staff) {
             employee.displayInfo();
         }
+
+        System.out.println("Всего сотрудников в штате: " + Employee.employeeCount);
     }
 }
 
 class Employee {
     String name;
     int salary;
+    static int employeeCount;
 
     public Employee (String newName, int newSalary) {
         this.name = newName;
         this.salary = newSalary;
+        employeeCount++;
     }
 
     void displayInfo () {
