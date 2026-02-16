@@ -15,15 +15,37 @@ public class DeliveryManagementSystem {
 
         //созадаём заказ (несколько товаров в цикле)
         String answer;
+        BigDecimal orderPrice = BigDecimal.ZERO;
+        int orderQuantity;
+
         do {
             System.out.println("Введите название товара:");
             String orderName = scanner.nextLine();
 
             System.out.println("Введите цену за 1 единицу товара:");
-            BigDecimal orderPrice = new BigDecimal(scanner.nextLine()); // BigDecimal для цены
+            //исключение для цены товара. Нельзя ввести буквы
+            while (true) {
+                try {
+                    orderPrice = new BigDecimal(scanner.nextLine());
+                    break;// BigDecimal для цены
+                } catch (NumberFormatException e){
+                    System.out.println("Неверный ввод. Используйте цифры.");
+                    System.out.println("Введите цену за 1 единицу товара:");
+                }
+
+            }
 
             System.out.println("Введите колличество единиц товара:");
-            int orderQuantity = Integer.parseInt(scanner.nextLine());
+            //исключение для количества товара. Нельзя ввести буквы
+            while (true) {
+                try {
+                    orderQuantity = Integer.parseInt(scanner.nextLine());
+                    break;
+                } catch (NumberFormatException e) {
+                    System.out.println("Неверный ввод. Используйте цифры.");
+                    System.out.println("Введите колличество единиц товара:");
+                }
+            }
 
             //собираем позицию заказа
             Order newOrder1 = new Order(orderName, orderPrice, orderQuantity);
